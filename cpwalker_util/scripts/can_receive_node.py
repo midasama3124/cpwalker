@@ -39,9 +39,9 @@ def main():
 	module = CANbus(95, 'right_knee')
 	r = rospy.Rate(100)      # Hz
 	while not rospy.is_shutdown():
-		module.send_init()
-		# module.receive_data()
-		r.sleep()
+		# module.send_init()
+		module.receive_data()
+		# r.sleep()
 
 if __name__ == "__main__":
     try:
