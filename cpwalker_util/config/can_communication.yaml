@@ -1,0 +1,4 @@
+can_comm:
+  verbose: False
+  traction_port: can0
+  exo_port: can1       # "can0" or "can1"

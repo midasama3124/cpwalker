@@ -1,0 +1,14 @@
+<launch>
+  <!-- ARGS -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <!-- PARAMS -->
+  <rosparam file="$(find cpwalker_util)/config/can_communication.yaml" />
+  <rosparam file="$(find cpwalker_exo)/config/hardware.yaml" />
+
+  <!-- NODES -->
+  <node pkg="cpwalker_exo" name="exo_sensor_acquisition_node" type="sensor_acquisition_node.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
+  <node pkg="cpwalker_exo" name="exo_sensor_processing_node" type="sensor_processing_node.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
+</launch>

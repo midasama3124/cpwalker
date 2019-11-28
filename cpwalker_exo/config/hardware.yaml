@@ -1,0 +1,24 @@
+exo_hw:
+  verbose: False
+  joints:
+    # Uncomment connected joint and enable corresponding hardware
+    right_knee:
+      Potentiometer: True
+      Gauge: False
+      FSR1: False
+      FSR2: False
+    # left_knee:
+    #   Potentiometer: False
+    #   Gauge: False
+    #   FSR1: False
+    #   FSR2: False
+    # right_hip:
+    #   Potentiometer: False
+    #   Gauge: False
+    #   FSR1: False
+    #   FSR2: False
+    # left_hip:
+    #   Potentiometer: False
+    #   Gauge: False
+    #   FSR1: False
+    #   FSR2: False
