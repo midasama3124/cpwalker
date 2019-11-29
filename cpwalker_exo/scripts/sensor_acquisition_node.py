@@ -17,14 +17,7 @@ class SensorAcq(object):
         self.has_fsr1 = has_hw[2]
         self.has_fsr2 = has_hw[3]
         """ID assignment in dependance of joint name"""
-        if self.node_name == "left_hip":
-            self.can_id = 80
-        elif self.node_name == "right_hip":
-            self.can_id = 85
-        elif self.node_name == "left_knee":
-            self.can_id = 90
-        else:    # At least right_knee is initialized if no joint in config. file
-            self.can_id = 95
+        self.can_id = rospy.get_param("exo_hw/{}/can_id".format(self.node_name), 95)   # At least right_knee is initialized if no joint in config. file
         self.channel = rospy.get_param("can_comm/exo_port", "can1")
         self.can_bus = CANbus(id=self.can_id, channel=self.channel)      # CAN bus
         """ROS initialization"""
@@ -49,16 +42,16 @@ class SensorAcq(object):
                 ''' Bytearray decoding returns tuple. Meaning of arguments:
                 >: big endian, <: little endian, H: unsigned short (2 bytes), B: unsigned char'''
                 if self.has_pot:
-                    pot_msg = struct.unpack('>H', msg.data[:2])[0]    # 2 most significant bytes correspond to potentiometer reading
+                    pot_msg = struct.unpack('<H', msg.data[:2])[0]    # 2 most significant bytes correspond to potentiometer reading
                     self.pot_pub.publish(pot_msg)
                 if self.has_gauge:
-                    sensor_msg = struct.unpack('>H', msg.data[2:4])[0]   # 3-4 bytes correspond to strain_gauge reading
+                    sensor_msg = struct.unpack('<H', msg.data[2:4])[0]   # 3-4 bytes correspond to strain_gauge reading
                     self.gauge_pub.publish(sensor_msg)
                 if self.has_fsr1:
-                    sensor_msg = struct.unpack('>H', msg.data[4:6])[0]   # 5-6 bytes correspond to potentiometer reading
+                    sensor_msg = struct.unpack('<H', msg.data[4:6])[0]   # 5-6 bytes correspond to potentiometer reading
                     self.fsr1_pub.publish(sensor_msg)
                 if self.has_fsr2:
-                    sensor_msg = struct.unpack('>H', msg.data[6:])[0]    # 7-8 bytes correspond to potentiometer reading
+                    sensor_msg = struct.unpack('<H', msg.data[6:])[0]    # 7-8 bytes correspond to potentiometer reading
                     self.fsr2_pub.publish(sensor_msg)
 
 def main():

@@ -3,21 +3,25 @@ exo_hw:
   joints:
     # Uncomment connected joint and enable corresponding hardware
     right_knee:
+      can_id: 95
       Potentiometer: True
       Gauge: False
       FSR1: False
       FSR2: False
     # left_knee:
+    #   can_id: 90
     #   Potentiometer: False
     #   Gauge: False
     #   FSR1: False
     #   FSR2: False
     # right_hip:
+    #   can_id: 85
     #   Potentiometer: False
     #   Gauge: False
     #   FSR1: False
     #   FSR2: False
     # left_hip:
+    #   can_id: 80
     #   Potentiometer: False
     #   Gauge: False
     #   FSR1: False
