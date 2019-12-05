@@ -3,8 +3,6 @@ traction_hw:
   sampling_freq: 100  # Hz
   joints:
     right_wheel:
-      spi_dev: 1
-      Encoder: True
-    left_wheel:
       spi_dev: 0
-      Encoder: False
+    # left_wheel:
+    #   spi_dev: 0
