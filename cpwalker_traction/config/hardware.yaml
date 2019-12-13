@@ -4,5 +4,5 @@ traction_hw:
   joints:
     right_wheel:
       spi_dev: 0
-    # left_wheel:
-    #   spi_dev: 0
+    left_wheel:
+      spi_dev: 1
