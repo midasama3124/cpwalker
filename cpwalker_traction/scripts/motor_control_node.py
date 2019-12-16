@@ -16,6 +16,9 @@ Low level control for a differential drive robot with two actuated wheels (adapt
  - The object dealing with the I2C communication handles: 
         - receives as inputs the desired voltage outputs given by the PIDs
         - mapps those into (0,255) int values and output driver commands
+
+We're using the simple-pid library, which assumes you are tunning the PID parameters in the parallel form:
+C = kp*e + ki*dt*e + kd*de/dt
 '''
 class MotorControl(object):
     def __init__(self):
@@ -43,9 +46,9 @@ class MotorControl(object):
         self.i2c_bus.stop_robot()
 
     def initParameters(self):
-        self.debug = self.rospy.get_param("~debug", False)
+        self.debug = self.rospy.get_param("traction_control/debug", False)
 
-        self.control_rate = self.rospy.get_param("~control_rate", 100)
+        self.control_rate = self.rospy.get_param("traction_control/control_rate", 100)
         self.rate = self.rospy.Rate(self.control_rate)
         
         '''
@@ -55,23 +58,23 @@ class MotorControl(object):
         vel_raw: robot velocity as given by the encoders (geometry_msgs.Twist)
         odom: actual odometry readings which - ideally - consider multiple sensors (encoders and IMU, at least) (nav_msgs.Odometry)
         '''
-        self.cmd_vel_topic = self.rospy.get_param("cmd_vel_topic", "/cmd_vel")
-        self.current_vel_topic = self.rospy.get_param("vel_topic", "/vel_raw")
+        self.cmd_vel_topic = self.rospy.get_param("traction_general/cmd_vel_topic", "/cmd_vel")
+        self.current_vel_topic = self.rospy.get_param("traction_general/vel_topic", "/vel_raw")
 
-        self.wheels_distance = self.rospy.get_param("~wheels_distance", 0.8) # TODO: Check!
+        self.wheels_distance = self.rospy.get_param("traction_general/wheels_distance", 0.8) # TODO: Check!
 
         # PID parameters for each wheel
         time_sample = 1.0/self.control_rate        
         self.controller_params_left = {
-            "kp": self.rospy.get_param("~P",300),
-            "ki": self.rospy.get_param("~I",30),
-            "kd": self.rospy.get_param("~D",0),
-            "Ts": self.rospy.get_param("~Ts",time_sample)}
+            "kp": self.rospy.get_param("traction_control/pid_params_left/P",300),
+            "ki": self.rospy.get_param("traction_control/pid_params_left/I",30),
+            "kd": self.rospy.get_param("traction_control/pid_params_left/D",0),
+            "Ts": self.rospy.get_param("traction_control/pid_params_left/Ts",time_sample)}
         self.controller_params_right = {
-            "kp": self.rospy.get_param("~P",200),
-            "ki": self.rospy.get_param("~I",20),
-            "kd": self.rospy.get_param("~D",0),
-            "Ts": self.rospy.get_param("~Ts",time_sample)}
+            "kp": self.rospy.get_param("traction_control/pid_params_right/P",300),
+            "ki": self.rospy.get_param("traction_control/pid_params_right/I",30),
+            "kd": self.rospy.get_param("traction_control/pid_params_right/D",0),
+            "Ts": self.rospy.get_param("traction_control/pid_params_right/Ts",time_sample)}
         
         self.reference_linear_vel = 0.0
         self.reference_angular_vel = 0.0

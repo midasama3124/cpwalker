@@ -36,15 +36,15 @@ class WalkerVelocity(object):
         vel_raw: robot velocity as given by the encoders (geometry_msgs.Twist)
         odom: actual odometry readings which - ideally - consider multiple sensors (encoders and IMU, at least) (nav_msgs.Odometry)
         '''
-        self.right_wheel_vel_topic = self.rospy.get_param("~right_wheel_vel", "/right_wheel_vel")
-        self.left_wheel_vel_topic = self.rospy.get_param("~left_wheel_vel", "/left_wheel_vel")
+        self.right_wheel_vel_topic = self.rospy.get_param("traction_general/right_wheel_vel", "/right_wheel_vel")
+        self.left_wheel_vel_topic = self.rospy.get_param("traction_general/left_wheel_vel", "/left_wheel_vel")
         
         self.current_vel_topic = self.rospy.get_param("~vel_topic", "/vel_raw")
 
-        self.wheels_distance = self.rospy.get_param("~wheels_distance", 0.8) # TODO: Check!
+        self.wheels_distance = self.rospy.get_param("traction_general/wheels_distance", 0.8) # TODO: Check!
         # We're not assuming both wheels are equal (likelly are)
-        self.left_wheel_radius = self.rospy.get_param("~left_wheel_radius", 0.15) # TODO: Check! # In meters
-        self.right_wheel_radius = self.rospy.get_param("~right_wheel_radius", 0.15) # TODO: Check! # In meters
+        self.left_wheel_radius = self.rospy.get_param("traction_general/left_wheel_radius", 0.15) # TODO: Check! # In meters
+        self.right_wheel_radius = self.rospy.get_param("traction_general/right_wheel_radius", 0.15) # TODO: Check! # In meters
         rpm_to_ms_const_left  = self.left_wheel_radius * 2 * 3.1415 / 60 
         rpm_to_ms_const_right  = self.right_wheel_radius * 2 * 3.1415 / 60 
         return

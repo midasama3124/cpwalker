@@ -6,3 +6,31 @@ traction_hw:
       spi_dev: 0
     left_wheel:
       spi_dev: 1
+
+traction_control:
+  control_rate: 100
+  debug: False
+  pid_params_left:
+    P: 300
+    I: 30
+    D: 0
+  pid_params_right:
+    P: 300
+    I: 30
+    D: 0
+    
+traction_general:
+  wheels_distance: 0.8 # in meters # TODO: Check!
+  left_wheel_radius: 0.15 # in meters # TODO: Check!
+  right_wheel_radius: 0.15 # in meters # TODO: Check!
+  #
+  # ROS topic names - I'm following the given convention:
+  # - cmd_vel: the actual velocity command (geometry_msgs.Twist)
+  # - aux_cmd_vel: an aux velocity command that may not be suitable for the actual output (geometry_msgs.Twist)
+  # - vel_raw: robot velocity as given by the encoders (geometry_msgs.Twist)
+  # - odom: actual odometry readings which - ideally - consider multiple sensors (encoders and IMU, at least) (nav_msgs.Odometry)
+  #
+  cmd_vel_topic: "/cmd_vel"
+  vel_topic: "/vel_raw"
+  right_wheel_vel: "/right_wheel_vel"
+  left_wheel_vel: "/left_wheel_vel"
