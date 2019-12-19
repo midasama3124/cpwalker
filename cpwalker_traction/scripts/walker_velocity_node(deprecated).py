@@ -22,7 +22,6 @@ class WalkerVelocity(object):
         self.initParameters()
         
         self.initPublishers()
-        self.initSubscribers()
 
         # Main loop
         self.main_controller()
@@ -45,8 +44,8 @@ class WalkerVelocity(object):
         # We're not assuming both wheels are equal (likelly are)
         self.left_wheel_radius = self.rospy.get_param("traction_general/left_wheel_radius", 0.15) # TODO: Check! # In meters
         self.right_wheel_radius = self.rospy.get_param("traction_general/right_wheel_radius", 0.15) # TODO: Check! # In meters
-        rpm_to_ms_const_left  = self.left_wheel_radius * 2 * 3.1415 / 60 
-        rpm_to_ms_const_right  = self.right_wheel_radius * 2 * 3.1415 / 60 
+        self.rpm_to_ms_const_left  = self.left_wheel_radius * 2 * 3.1415 / 60 
+        self.rpm_to_ms_const_right  = self.right_wheel_radius * 2 * 3.1415 / 60 
         return
 
     def initPublishers(self):
@@ -54,30 +53,30 @@ class WalkerVelocity(object):
         self.walker_vel_msg = Twist()
         return
     
-    def rpm_to_meterspersecond_left(self,vel_in_rpm)
-        vel_in_ms = rpm_to_ms_const_left * vel_in_rpm
+    def rpm_to_meterspersecond_left(self,vel_in_rpm):
+        vel_in_ms = self.rpm_to_ms_const_left * vel_in_rpm
         return vel_in_ms
     
-    def rpm_to_meterspersecond_right(self,vel_in_rpm)
-        vel_in_ms = rpm_to_ms_const_right * vel_in_rpm
+    def rpm_to_meterspersecond_right(self,vel_in_rpm):
+        vel_in_ms = self.rpm_to_ms_const_right * vel_in_rpm
         return vel_in_ms
     
-    def wheels_to_walker(self,left_wheel_vel,right_wheel_vel)
+    def wheels_to_walker(self,left_wheel_vel,right_wheel_vel):
         walker_linear_vel = (left_wheel_vel + right_wheel_vel) / 2
         walker_angular_vel = (right_wheel_vel - left_wheel_vel) / self.wheels_distance 
         return walker_linear_vel, walker_angular_vel
 
     # We're using message_filters to sync messages from different topics
     # The callback process pairs of messages that arrived at approximately the same time     
-    def vel_callback(left_wheel_vel_sub, right_wheel_vel_sub):
+    def vel_callback(self,left_wheel_vel_sub, right_wheel_vel_sub):
         # Messages are sync'ed, OK
         # We have the velocity of each wheel in rpm
         # Lets put those in m/s
-        left_wheel_vel_in_ms = rpm_to_meterspersecond_left(left_wheel_vel_sub)
-        right_wheel_vel_in_ms = rpm_to_meterspersecond_right(right_wheel_vel_sub)
+        left_wheel_vel_in_ms = self.rpm_to_meterspersecond_left(left_wheel_vel_sub.data)
+        right_wheel_vel_in_ms = self.rpm_to_meterspersecond_right(right_wheel_vel_sub.data)
 
         # Get the velocities of the walker frame
-        walker_linear_vel, walker_angular_vel = wheels_to_walker(left_wheel_vel_in_ms,right_wheel_vel_in_ms)
+        walker_linear_vel, walker_angular_vel = self.wheels_to_walker(left_wheel_vel_in_ms,right_wheel_vel_in_ms)
 
         # Create and publish the velocity message
         self.walker_vel_msg.linear.x = walker_linear_vel
@@ -89,8 +88,8 @@ class WalkerVelocity(object):
         left_wheel_vel_sub = message_filters.Subscriber(self.left_wheel_vel_topic, Float64)
         right_wheel_vel_sub = message_filters.Subscriber(self.right_wheel_vel_topic, Float64)
 
-        self.ts = message_filters.ApproximateTimeSynchronizer([left_wheel_vel_sub, right_wheel_vel_sub], 10, 0. 1, allow_headerless=True)
-        self.ts.registerCallback(vel_callback)
+        self.ts = message_filters.ApproximateTimeSynchronizer([left_wheel_vel_sub, right_wheel_vel_sub],10, 0.1,allow_headerless=True)
+        self.ts.registerCallback(self.vel_callback)
         
         while not self.rospy.is_shutdown():
             rospy.spin()
