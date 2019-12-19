@@ -8,23 +8,23 @@ import time
 joints = ["right_wheel", "left_wheel"]
 
 class MotorVel(object):
-    def __init__(self, node_name):
-        self.node_name = node_name
+    def __init__(self, joint_name):
+        self.joint_name = joint_name
         self.verbose = rospy.get_param("traction_hw/verbose", False)
         self.enc_status = 0
         self.ppr = 512.0*4      # Encoder resolution. 1 CPR = 4 PPR
         self.ratio = 53.3         # Motor transmission
         self.meas_time = time.time()     # Current measurement time
         """ROS initialization"""
-        rospy.init_node('{}_vel_node'.format(node_name), anonymous=True)
+        #rospy.init_node('{}_vel_node'.format(node_name), anonymous=True)
         self.init_pubs_()
         self.init_subs_()
 
     def init_pubs_(self):
-        self.vel_pub = rospy.Publisher('{}_vel'.format(self.node_name), Float64, queue_size=100)
+        self.vel_pub = rospy.Publisher('{}_vel'.format(self.joint_name), Float64, queue_size=100)
 
     def init_subs_(self):
-        rospy.Subscriber("{}_encoder".format(self.node_name), Int32, self.enc_callback_)
+        rospy.Subscriber("{}_encoder".format(self.joint_name), Int32, self.enc_callback_)
 
     def enc_callback_(self, msg):
         '''Publish motor velocity after converting encoder reading'''
@@ -44,6 +44,7 @@ class MotorVel(object):
 
 def main():
     """Module initialization"""
+    rospy.init_node('wheels_vel_node', anonymous=True)       
     for joint_name in joints:
         if rospy.has_param("traction_hw/joints/{}".format(joint_name)):
             joint_hw = rospy.get_param("traction_hw/joints/{}".format(joint_name))

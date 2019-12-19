@@ -1,0 +1,20 @@
+<launch>
+  <!-- ARGS -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <!-- PARAMS -->
+  <rosparam file="$(find cpwalker_util)/config/spi_communication.yaml" />
+  <rosparam file="$(find cpwalker_traction)/config/hardware.yaml" />
+
+  <!-- NODES -->
+  
+  <!-- Publish CPWalker vel -->
+  <node pkg="cpwalker_traction" name="encoder_acquisition_node" type="encoder_acquisition_node.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
+  <node pkg="cpwalker_traction" name="motor_velocity_node" type="motor_velocity_node.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
+  <node pkg="cpwalker_traction" name="walker_velocity_node" type="walker_velocity_node.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
+
+  <!-- Control CPWalker vel -->
+  <node pkg="cpwalker_traction" name="motor_control_node" type="motor_control_node.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
+</launch>
