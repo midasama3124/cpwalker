@@ -8,7 +8,7 @@ traction_hw:
       spi_dev: 1
 
 traction_control:
-  control_rate: 200
+  control_rate: 100
   debug: True
   pid_params_left:
     P: 300
