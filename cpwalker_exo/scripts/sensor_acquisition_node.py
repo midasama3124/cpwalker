@@ -9,30 +9,29 @@ joints = ["right_knee", "left_knee", "right_hip", "left_hip"]
 hw_names = ["Potentiometer", "Gauge", "FSR1", "FSR2"]
 
 class SensorAcq(object):
-    def __init__(self, node_name, has_hw):
-        self.node_name = node_name
+    def __init__(self, joint_name, has_hw):
+        self.joint_name = joint_name
         self.verbose = rospy.get_param("exo_hw/verbose", False)
         self.has_pot = has_hw[0]
         self.has_gauge = has_hw[1]
         self.has_fsr1 = has_hw[2]
         self.has_fsr2 = has_hw[3]
         """ID assignment in dependance of joint name"""
-        self.can_id = rospy.get_param("exo_hw/{}/can_id".format(self.node_name), 95)   # At least right_knee is initialized if no joint in config. file
+        self.can_id = rospy.get_param("exo_hw/{}/can_id".format(self.joint_name), 95)   # At least right_knee is initialized if no joint in config. file
         self.channel = rospy.get_param("can_comm/exo_port", "can1")
         self.can_bus = CANbus(id=self.can_id, channel=self.channel)      # CAN bus
         """ROS initialization"""
-        rospy.init_node('{}_acq_node'.format(node_name), anonymous=True)
         self.init_pubs_()
 
     def init_pubs_(self):
         if self.has_pot:
-            self.pot_pub = rospy.Publisher('{}_pot'.format(self.node_name), UInt16, queue_size=100)
+            self.pot_pub = rospy.Publisher('{}_pot'.format(self.joint_name), UInt16, queue_size=100)
         if self.has_gauge:
-            self.gauge_pub = rospy.Publisher('{}_raw_gauge'.format(self.node_name), UInt16, queue_size=100)
+            self.gauge_pub = rospy.Publisher('{}_raw_gauge'.format(self.joint_name), UInt16, queue_size=100)
         if self.has_fsr1:
-            self.fsr1_pub = rospy.Publisher('{}_raw_fsr1'.format(self.node_name), UInt16, queue_size=100)
+            self.fsr1_pub = rospy.Publisher('{}_raw_fsr1'.format(self.joint_name), UInt16, queue_size=100)
         if self.has_fsr2:
-            self.fsr2_pub = rospy.Publisher('{}_raw_fsr2'.format(self.node_name), UInt16, queue_size=100)
+            self.fsr2_pub = rospy.Publisher('{}_raw_fsr2'.format(self.joint_name), UInt16, queue_size=100)
 
     def get_sensor_data(self):
         self.can_bus.send_command()
@@ -55,9 +54,12 @@ class SensorAcq(object):
                     self.fsr2_pub.publish(sensor_msg)
 
 def main():
+    rospy.init_node('exo_acq_node', anonymous=True)
     """Module initialization"""
+    has_joint = []
     for joint_name in joints:
         if rospy.has_param("exo_hw/joints/{}".format(joint_name)):
+            has_joint.append(joint_name)
             joint_hw = rospy.get_param("exo_hw/joints/{}".format(joint_name))
             has_hw = []
             for hw_component in hw_names:
@@ -65,10 +67,11 @@ def main():
             if True in has_hw:
                 exec("{} = SensorAcq('{}', has_hw)".format(joint_name, joint_name))
 
-    rate = rospy.Rate(100)      # Hz
-    rospy.logwarn("Reading sensor data...")
+    rate = rospy.Rate(100)   # TODO add this as parameter
+    rospy.loginfo("[Exo] Reading sensor data...")
     while not rospy.is_shutdown():
-        right_knee.get_sensor_data()
+        for joint_name in has_joint:
+            exec("{}.get_sensor_data()".format(joint_name))
     	rate.sleep()
 
     """Clean up ROS parameter server"""

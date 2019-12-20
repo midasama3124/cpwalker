@@ -38,8 +38,8 @@ def main():
             joint_hw = rospy.get_param("traction_hw/joints/{}".format(joint_name))
             exec("{} = EncoderAcq('{}')".format(joint_name, joint_name))
 
-    rate = rospy.Rate(100)      # Hz
-    rospy.logwarn("Reading sensor data...")
+    rate = rospy.Rate(100)      # TODO add this as parameter
+    rospy.loginfo("[Encoders] Reading sensor data...")
     while not rospy.is_shutdown():
         if 'right_wheel' in locals(): right_wheel.get_sensor_data()
     	if 'left_wheel' in locals(): left_wheel.get_sensor_data()
