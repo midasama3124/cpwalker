@@ -20,6 +20,7 @@ traction_control:
     D: 0
     
 traction_general:
+  is_active: True
   wheels_separation: 0.8 # in meters # TODO: Check!
   left_wheel_radius: 0.15 # in meters # TODO: Check!
   right_wheel_radius: 0.15 # in meters # TODO: Check!

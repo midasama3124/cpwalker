@@ -13,3 +13,4 @@ elevation_control:
     I: 10
     D: 0
   position_topic: "/elevation_signal"
+  elevation_setpoint_topic: "/elevation_setpoint"

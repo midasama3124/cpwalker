@@ -29,7 +29,7 @@ class PotAcq(object):
 def main():
     rospy.init_node('encoders_acq_node', anonymous=True)
 
-    rate_param = self.rospy.get_param("elevation_hw/sampling_frequency", False)
+    rate_param = rospy.get_param("elevation_hw/sampling_frequency", False)
     rate = rospy.Rate(rate_param)
     
     elevation_acq = PotAcq()

@@ -7,6 +7,7 @@
   <!-- PARAMS -->
   <rosparam file="$(find cpwalker_util)/config/spi_communication.yaml" />
   <rosparam file="$(find cpwalker_traction)/config/hardware.yaml" />
+  <rosparam file="$(find cpwalker_elevation)/config/hardware.yaml" />
 
   <!-- NODES -->
   
