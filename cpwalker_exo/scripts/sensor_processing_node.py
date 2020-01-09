@@ -18,8 +18,17 @@ class SensorProcess(object):
         self.has_fsr2 = has_hw[3]
         self.filter_states = [0.0]*2
         """ROS initialization"""
+        self.init_params_()
         self.init_pubs_()
         self.init_subs_()
+
+    def init_params_(self):
+        self.pot_params_all = {'left_knee':[-0.105, 98.401],
+                     'right_knee':[0.1087, -10.109]
+                     'left_hip':[-0.0983, 67.598]
+                     'right_hip':[-0.1061, 56.675]
+                     }
+        self.pot_params = self.pot_params_all[self.joint_name]
 
     def init_pubs_(self):
         if self.has_pot:
@@ -76,15 +85,9 @@ class SensorProcess(object):
     """ Converts from potentiometer reading to angle value.
         The transference funtion depends on the joint being used."""
     def pot2angle(self, pot):
-        if self.node_name == 'left_knee':
-            angle = -0.105*pot + 98.401
-        if self.node_name == 'right_knee':
-            angle = 0.1087*pot - 10.109
-        if self.node_name == 'left_hip':
-            angle = -0.0983*pot + 67.598
-        if self.node_name == 'right_hip':
-            angle = -0.1061*pot + 56.675
-        return angle
+        # parameters for each joint are pre-encoded in the list for efficiency
+        # the output angle can be obtained with the given formula:
+        return self.pot_params[0]*pot + self.pot_params[1]
 
 def main():
     rospy.init_node('exo_proc_node', anonymous=True)
