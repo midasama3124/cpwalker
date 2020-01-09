@@ -1,5 +1,6 @@
 exo_hw:
   verbose: False
+  sampling_frequency: 100
   joints:
     # Uncomment connected joint and enable corresponding hardware
     right_knee:

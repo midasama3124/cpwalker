@@ -4,9 +4,9 @@ import time
 import can
 
 class CANbus(object):
-    def __init__(self, id, channel='can1', bustype='socketcan'):
-        self.id = id
+    def __init__(self, channel='can1', bustype='socketcan'):        
         self.bus = can.interface.Bus(channel=channel, bustype=bustype)
+        self.buffer = can.BufferedReader()
         self.verbose = rospy.get_param('can_comm/verbose', False)
 
     """ Send the following data frame to receive a data package from the sensor acquisition board:
@@ -25,7 +25,7 @@ class CANbus(object):
         used after sending the commanding data frame (previous function)
     """
     def receive_data(self):
-        msg = self.bus.recv(1) # Timeout in seconds. None: Wait until data is received.
+        msg = self.bus.recv(.1) # Timeout in seconds. None: Wait until data is received.
         if msg is None:
             rospy.logerr('Timeout occurred, no message.')
         elif self.verbose:

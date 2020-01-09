@@ -1,6 +1,13 @@
 elevation_hw:
   verbose: False
   sampling_freq: 100
+  joints:
+    elevation:
+      can_id: 95     ### Check!
+      Potentiometer: True
+      Gauge: False
+      FSR1: False
+      FSR2: False
   
 elevation_general:
   is_active: True
@@ -10,7 +17,7 @@ elevation_control:
   debug: True
   pid_params:
     P: 10
-    I: 10
+    I: 0
     D: 0
   position_topic: "/elevation_signal"
   elevation_setpoint_topic: "/elevation_setpoint"
