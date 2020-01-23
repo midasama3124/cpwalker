@@ -1,6 +1,6 @@
 elevation_hw:
-  verbose: False
-  sampling_freq: 100
+  verbose: True
+  sampling_frequency: 100
   joints:
     elevation:
       can_id: 95     ### Check!
@@ -16,8 +16,8 @@ elevation_control:
   control_rate: 100
   debug: True
   pid_params:
-    P: 10
-    I: 0
+    P: 30
+    I: 5
     D: 0
   position_topic: "/elevation_signal"
   elevation_setpoint_topic: "/elevation_setpoint"

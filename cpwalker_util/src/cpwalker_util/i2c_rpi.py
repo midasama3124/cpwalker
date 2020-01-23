@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import smbus 
+import smbus2 as smbus
 import time
 '''
 Communication with the MD22 motor driver via I2C with the Raspberry Pi
@@ -115,6 +115,6 @@ class I2Cbus():
         try:
             self.bus.write_byte_data(self.ELEVATION_DEVICE_ADDRESS, self.ELEVATION_MOTOR_REG, motor_signal_i2c)
         except:
-            print("[DEBUG] Traction IO error")
+            print("[DEBUG] {} Elevation IO error".format(int(round(time.time()))))
         
     

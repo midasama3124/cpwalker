@@ -18,6 +18,7 @@ class VelocityUtils(object):
         self.publish_vel_raw = self.rospy.get_param("traction_general/pub_vel_raw", False)
         self.current_vel_topic = self.rospy.get_param("traction_general/vel_topic", "/vel_raw")
         self.wheels_separation = self.rospy.get_param("traction_general/wheels_separation", 0.8) # TODO: Check!
+        self.wheels_separation_param = self.wheels_separation / 2
         # We're not assuming both wheels are equal, though they should be (and likelly are)
         self.left_wheel_radius = self.rospy.get_param("traction_general/left_wheel_radius", 0.15) # TODO: Check! # In meters
         self.right_wheel_radius = self.rospy.get_param("traction_general/right_wheel_radius", 0.15) # TODO: Check! # In meters
@@ -48,8 +49,8 @@ class VelocityUtils(object):
     def walker_to_wheels(self,lin,ang):
         # From walker's linear (m/s) and angular (rad/s) velocities
         # To left and right wheels velocities (m/s)
-        left_wheel_vel = lin - ((ang * self.wheels_separation) / 2)
-        right_wheel_vel = lin + ((ang * self.wheels_separation) / 2)
+        left_wheel_vel = lin - (ang * self.wheels_separation_param) # we're dividing by two on the init as a minor optimization
+        right_wheel_vel = lin + (ang * self.wheels_separation_param) # we're dividing by two on the init as a minor optimization
         return left_wheel_vel, right_wheel_vel
 
     def get_walker_vel(self,left_wheel_vel_sub,right_wheel_vel_sub):

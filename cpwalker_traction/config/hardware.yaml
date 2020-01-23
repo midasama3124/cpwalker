@@ -1,6 +1,6 @@
 traction_hw:
   verbose: False
-  sampling_freq: 100  # Hz
+  sampling_frequency: 100  # Hz
   joints:
     right_wheel:
       spi_dev: 0
@@ -11,12 +11,12 @@ traction_control:
   control_rate: 100
   debug: True
   pid_params_left:
-    P: 300
-    I: 30
+    P: 30
+    I: 5
     D: 0
   pid_params_right:
-    P: 300
-    I: 30
+    P: 30
+    I: 5
     D: 0
     
 traction_general:

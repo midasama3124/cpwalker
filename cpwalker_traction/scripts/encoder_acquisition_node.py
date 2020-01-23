@@ -38,14 +38,16 @@ def main():
             joint_hw = rospy.get_param("traction_hw/joints/{}".format(joint_name))
             exec("{} = EncoderAcq('{}')".format(joint_name, joint_name))
 
-    rate = rospy.Rate(100)      # TODO add this as parameter
+    rate_param = rospy.get_param("traction_hw/sampling_frequency", 100)    
+    rate = rospy.Rate(rate_param)
     rospy.loginfo("[Encoders] Reading sensor data...")
     while not rospy.is_shutdown():
         if 'right_wheel' in locals(): right_wheel.get_sensor_data()
     	if 'left_wheel' in locals(): left_wheel.get_sensor_data()
     	rate.sleep()
-    right_wheel.spi_bus.close()
-    left_wheel.spi_bus.close()
+    
+    for joint_name in joints:
+        exec("{}.spi_bus.close()".format(joint_name))
 
     """Clean up ROS parameter server"""
     try:

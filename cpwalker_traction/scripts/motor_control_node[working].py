@@ -1,7 +1,5 @@
 #!/usr/bin/python
 import rospy
-import message_filters
-
 from simple_pid import PID
 from cpwalker_util.i2c_rpi import I2Cbus
 from cpwalker_traction.velocity_util import VelocityUtils
@@ -9,7 +7,6 @@ from cpwalker_traction.velocity_util import VelocityUtils
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
-
 
 '''
 This node is resposible for the control of the motors from traction and elevation systems.
@@ -52,8 +49,6 @@ class TractionMotorControl(object):
         self.initPIDs()
         self.vel_utils = VelocityUtils()
 
-        
-
     def __del__(self):
         self.i2c_bus.traction_stop_robot()
         print("For testing only - erase this line")
@@ -62,7 +57,7 @@ class TractionMotorControl(object):
             self.right_control_signal.publish(Float64(data=self.right_wheel_signal_volts))
 
     def initParameters(self):
-        self.debug = self.rospy.get_param("traction_control/debug", True)
+        self.debug = self.rospy.get_param("traction_control/debug", False)
 
         self.control_rate = self.rospy.get_param("traction_control/control_rate", 200)
         self.rate = self.rospy.Rate(self.control_rate)
@@ -99,16 +94,13 @@ class TractionMotorControl(object):
 
     def initSubscribers(self):
         # Subscribe to a current vel topic and a comand vel topic
-        self.sub_odom = message_filters.Subscriber(self.odom_topic,Odometry)
-        self.sub_cmd_vel = message_filters.Subscriber(self.cmd_vel_topic,Twist)
-
-        self.ts = message_filters.ApproximateTimeSynchronizer([self.sub_odom, self.sub_cmd_vel],5, 0.01, allow_headerless=True)
-        self.ts.registerCallback(self.control_callback)
+        self.sub_odom = self.rospy.Subscriber(self.odom_topic,Odometry,self.callback_odom)    
+        self.sub_cmd_vel = self.rospy.Subscriber(self.cmd_vel_topic,Twist,self.callback_high_level_control)
         return
 
     def initPublishers(self):
-        self.left_control_signal = self.rospy.Publisher("left_control_signal", Float64, queue_size = 100)  
-        self.right_control_signal = self.rospy.Publisher("right_control_signal", Float64, queue_size = 100)    
+        self.left_control_signal = self.rospy.Publisher("left_control_signal", Float64, queue_size = 10)  
+        self.right_control_signal = self.rospy.Publisher("right_control_signal", Float64, queue_size = 10)    
         return
 
     def initPIDs(self):
@@ -119,18 +111,19 @@ class TractionMotorControl(object):
         self.pid_right = PID(self.controller_params_right["kp"], self.controller_params_right["ki"], self.controller_params_right["kd"], setpoint=0,sample_time=self.controller_params_right["Ts"],output_limits=(-22, 22))
         return
 
-    # We're using message_filters to sync messages from different topics
-    # The callback process pairs of messages that arrived at approximately the same time     
-    def control_callback(self,odom_msg,cmd_vel_msg):
-        # Messages are sync'ed, OK
+    def callback_high_level_control(self,msg):
         # From high level controller
         # Extract walker's reference linear and angular velocities
-        self.reference_linear_vel = cmd_vel_msg.linear.x
-        self.reference_angular_vel = cmd_vel_msg.angular.z
+        self.reference_linear_vel = msg.linear.x
+        self.reference_angular_vel = msg.angular.z
+        return
+
+    def callback_odom(self,msg):
         # From odometry
         # Extract walker's current linear and angular velocities
-        self.current_linear_vel = odom_msg.twist.twist.linear.x
-        self.current_angular_vel = odom_msg.twist.twist.angular.z
+        self.current_linear_vel = msg.twist.twist.linear.x
+        self.current_angular_vel = msg.twist.twist.angular.z
+        return
 
     def pid_controller_left(self, reference_vel_wheel, current_vel_wheel):
         self.pid_left.setpoint = reference_vel_wheel
@@ -156,9 +149,9 @@ class TractionMotorControl(object):
             self.left_control_signal.publish(Float64(data=self.left_wheel_signal_volts))
             self.right_control_signal.publish(Float64(data=self.right_wheel_signal_volts))
 
-        # Send command
+    def send_command(self):
         self.i2c_bus.traction_send_command(self.left_wheel_signal_volts,self.right_wheel_signal_volts)
-
+        return True
 
 class ElevationMotorControl(object):
     '''
@@ -186,7 +179,7 @@ class ElevationMotorControl(object):
         print("For testing only - erase this line")
         
     def initParameters(self):
-        self.debug = self.rospy.get_param("elevation_control/debug", True)
+        self.debug = self.rospy.get_param("elevation_control/debug", False)
 
         self.position_topic = self.rospy.get_param("elevation_control/position_topic", "/elevation_signal")
         self.elevation_setpoint_topic = self.rospy.get_param("elevation_control/elevation_setpoint_topic", "/elevation_setpoint")
@@ -201,7 +194,6 @@ class ElevationMotorControl(object):
          
         self.elevation_setpoint = 0.0
         self.elevation_position = 0.0
-        self.elevation_msg = Float64()
         return
 
     def initSubscriber(self):
@@ -239,14 +231,14 @@ class ElevationMotorControl(object):
     # Main loop
     def update_controller(self):
         # Call PID (returned control signal in volts)
-        elevation_signal_volts = self.pid_controller(self.elevation_setpoint,self.elevation_position)  
+        self.elevation_signal_volts = self.pid_controller(self.elevation_setpoint,self.elevation_position)
         
-        #if self.debug == True:
-        self.elevation_msg.data = elevation_signal_volts
-        self.elevation_control_signal.publish(self.elevation_msg.data)
-
-        # Send command
-        self.i2c_bus.elevation_send_command(elevation_signal_volts)
+        if self.debug == True:
+            self.elevation_control_signal.publish(Float64(data=self.elevation_signal_volts))
+        
+    def send_command(self):
+        self.i2c_bus.elevation_send_command(self.elevation_signal_volts)
+        return True
 
 def main():
     rospy.init_node('motor_control_node', anonymous=True)
@@ -254,7 +246,7 @@ def main():
 
     # Check which motors are we going to work with
     is_traction = rospy.get_param("traction_general/is_active", True)
-    is_elevation = rospy.get_param("elevation_general/is_active", True)
+    is_elevation = rospy.get_param("elevation_general/is_active", False)
 
     rate_param = rospy.get_param("traction_control/control_rate", 100)
     rate = rospy.Rate(rate_param)
@@ -262,38 +254,19 @@ def main():
     if is_traction: traction_control = TractionMotorControl(rate_param)
     if is_elevation: elevation_control = ElevationMotorControl(rate_param)
 
-    rospy.loginfo("[Motor Control] Starting control loop...")
-    if is_traction and is_elevation:
-        rospy.loginfo("[Motor Control] Elevation and traction activated")
-        while not rospy.is_shutdown():
+    rospy.loginfo("[Motor Control] Entering control loop...")
+    while not rospy.is_shutdown():
+        if is_traction:
             traction_control.update_controller()
+            traction_control.send_command()
+        if is_elevation:
             elevation_control.update_controller()
-            rate.sleep()
-    elif is_traction:
-        rospy.loginfo("[Motor Control] Traction activated")
-        while not rospy.is_shutdown():
-            traction_control.update_controller()
-            rate.sleep()
-    elif is_elevation:
-        rospy.loginfo("[Motor Control] Elevation activated")
-        while not rospy.is_shutdown():
-            elevation_control.update_controller()
-            rate.sleep()
-    del traction_control
-    del elevation_control
-    rospy.on_shutdown(shutdown_fun)
-
-def shutdown_fun():
-    rospy.loginfo("[Motor Control] Shuting down")
-    i2c_bus_tr = I2Cbus("traction")
-    i2c_bus_el = I2Cbus("elevation")
-    i2c_bus_tr.traction_stop_robot()
-    del i2c_bus_tr
-    del i2c_bus_el
+            elevation_control.send_command()
+    	rate.sleep()
+    
 
 if __name__ == '__main__':
     try:
         main()
-    except:
+    except rospy.ROSInterruptException:
         pass
- 

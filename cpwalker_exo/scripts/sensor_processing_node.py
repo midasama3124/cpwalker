@@ -24,8 +24,8 @@ class SensorProcess(object):
 
     def init_params_(self):
         self.pot_params_all = {'left_knee':[-0.105, 98.401],
-                     'right_knee':[0.1087, -10.109]
-                     'left_hip':[-0.0983, 67.598]
+                     'right_knee':[0.1087, -10.109],
+                     'left_hip':[-0.0983, 67.598],
                      'right_hip':[-0.1061, 56.675]
                      }
         self.pot_params = self.pot_params_all[self.joint_name]

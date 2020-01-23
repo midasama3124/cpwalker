@@ -56,8 +56,8 @@ def main():
             has_joint.append(joint_name)
             joint_hw = rospy.get_param("exo_hw/joints/{}".format(joint_name))
 
-            can_id = rospy.get_param("exo_hw/joints/{}/can_id".format(joint_name)) ########
-            joint_can_id.update( {joint_name : can_id} ) #########
+            can_id = rospy.get_param("exo_hw/joints/{}/can_id".format(joint_name))
+            joint_can_id.update( {joint_name : can_id} ) 
             
             has_hw = []
             for hw_component in hw_names:
@@ -68,10 +68,10 @@ def main():
     inv_joint_can_id = {v: k for k, v in joint_can_id.iteritems()} # inverting key and value 
     
     # CAN
-    can_channel = rospy.get_param("can_comm/exo_port", "can1") #########
-    can_bus = CANbus(channel=can_channel)      #####
+    can_channel = rospy.get_param("can_comm/exo_port", "can1")
+    can_bus = CANbus(channel=can_channel)
 
-    rate_param = rospy.get_param("exo_hw/sampling_frequency", 100)
+    rate_param = rospy.get_param("exo_hw/sampling_frequency", 1)
     rate = rospy.Rate(rate_param) 
     '''
     Honestly, this is not the best way to do this. What we're doing here is
@@ -81,15 +81,14 @@ def main():
     rospy.loginfo("[Exo] Reading sensor data...")
     while not rospy.is_shutdown():
         can_bus.send_command()
-        for i in range(number_of_joints)
+        for i in range(number_of_joints):
             msg = can_bus.receive_data()
             if msg is not None:
-                joint = inv_joint_can_id[msg.arbitration_id] # get joint name from joint can id
-                exec("{}.get_sensor_data(msg)".format(joint))
-                # old code; I'm attempting a minor optmization in this inner loop by avoiding the for/if
-                #for joint_name in has_joint:
-                #    if msg.arbitration_id == joint_can_id[joint_name]:
-                #        exec("{}.get_sensor_data(msg)".format(joint_name))         
+                try:
+                    joint = inv_joint_can_id[msg.arbitration_id] # get joint name from joint can id
+                    exec("{}.get_sensor_data(msg)".format(joint))
+                except:
+                    rospy.loginfo("[Exo] Error with id {}".format(msg.arbitration_id))
     	rate.sleep()
 
     """Clean up ROS parameter server"""
