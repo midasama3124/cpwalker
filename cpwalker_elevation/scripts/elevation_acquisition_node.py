@@ -13,7 +13,9 @@ This code is directly adapted from the exo code, as the communication scheme sho
 hw_names = ["Potentiometer", "Gauge", "FSR1", "FSR2"]
 '''
 There's room for some cleanup here, as the elevation system does not use all of those sensors.
-Also, I'm assuming that all of the sensors are connected to a single CAN module
+Also, I'm assuming:
+    - all of the sensors are connected to a single CAN module (i.e., a single DAQ);
+    - this CAN bus is used exclusively for the elevation acquisition
 '''
 class SensorAcq(object):
     def __init__(self, joint_name, has_hw):
@@ -73,7 +75,9 @@ def main():
     '''
     Honestly, this is not the best way to do this. What we're doing here is
     to loop over sending one command and trying to read as fast as possible
-    the exact number of messages that should be arriving in response. 
+    the exact number of messages that should be arriving in response. One
+    might want to use threads or a timeout system (here we're relying on
+    the CANbus timeout for receiving data).
     '''
     rospy.loginfo("[Elevation] Reading sensor data...")
     while not rospy.is_shutdown():

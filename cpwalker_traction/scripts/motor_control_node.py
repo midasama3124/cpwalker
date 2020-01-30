@@ -33,6 +33,8 @@ class TractionMotorControl(object):
             - receives as inputs the desired voltage outputs given by the PIDs
             - mapps those into (0,255) int values and output driver commands
 
+    Note: 
+
     We're using the simple-pid library, which assumes you are tunning the PID parameters in the parallel form:
     C = kp*e + ki*dt*e + kd*de/dt
     '''
