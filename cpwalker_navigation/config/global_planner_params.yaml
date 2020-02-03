@@ -1,0 +1,8 @@
+base_global_planner: global_planner/GlobalPlanner
+
+GlobalPlanner:
+  planner_frequency: 0.5   # Critical parameter!!  
+  planner_patience: 5.0    # Critical parameter!! 
+  orientation_mode: 2      # interpolate from current orientation to last orientation
+
+

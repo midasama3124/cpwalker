@@ -1,0 +1,21 @@
+#Independent settings for the planner's costmap
+global_costmap:
+    publish_voxel_map: true
+    global_frame: map
+    robot_base_frame: base_link
+    update_frequency: 0.5  # Critical parameter!! 
+    publish_frequency: 0.5 # Critical parameter!!
+    static_map: true
+    width: 20
+    height: 20
+    resolution: 0.15
+    static_map:
+      map_topic: /map2  
+
+    obstacle_layer:
+      observation_sources: laser_scan
+      laser_scan: {data_type: LaserScan, topic: /scan, sensor_frame: base_laser, marking: true, clearing: true}
+
+    inflation_layer:
+      inflation_radius: 0.7  
+      cost_scaling_factor: 10

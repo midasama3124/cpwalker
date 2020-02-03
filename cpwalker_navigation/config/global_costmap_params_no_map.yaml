@@ -1,0 +1,20 @@
+#Independent settings for the planner's costmap
+global_costmap:
+    publish_voxel_map: true
+    global_frame: odom
+    robot_base_frame: base_link
+    update_frequency: 0.5      # Critical parameter!!
+    static_map: false          # this is the no_map launch
+    rolling_window: true
+    width: 20.0                # Critical parameter for performance.
+    height: 20.0               # Critical parameter for performance.
+    resolution: 0.1
+    origin_x: 0.0
+    origin_y: 0.0
+    obstacle_layer:
+      observation_sources: laser_scan
+      laser_scan: {data_type: LaserScan, topic: /scan, sensor_frame: base_laser, marking: true, clearing: true}
+
+    inflation_layer:
+      inflation_radius: 0.5  
+      cost_scaling_factor: 0.5

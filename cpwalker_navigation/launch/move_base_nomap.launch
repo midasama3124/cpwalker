@@ -1,0 +1,21 @@
+<?xml version="0.0"?>
+<launch>
+  <!-- move_base launch extracted from the plx_walker package -->
+  <!-- If you want to use the navigation package, move_base receives desired poses and current
+  odometry as inputs and calls for a planner to execute the motion. -->
+  
+  <arg name="motion_type" default="diff" />
+
+  <!-- Run move_base -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <remap from="/cmd_vel" to="/RosAria/cmd_vel"/>
+    <rosparam file="$(find cpwalker_navigation)/config/move_base_params.yaml" command="load" />
+    <rosparam file="$(find cpwalker_navigation)/config/costmap_common_params_no_map.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find cpwalker_navigation)/config/costmap_common_params_no_map.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find cpwalker_navigation)/config/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find cpwalker_navigation)/config/global_costmap_params_no_map.yaml" command="load" />
+    <rosparam file="$(find cpwalker_navigation)/config/teb_local_planner_$(arg motion_type)_params.yaml" command="load" />
+    <rosparam file="$(find cpwalker_navigation)/config/global_planner_params.yaml" command="load" />
+  </node>
+
+</launch>
