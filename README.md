@@ -9,6 +9,6 @@ Each package in here is responsible for one of the CPWalker's subsystems.
 * cpwalker_elevation: elevation system acquisition and control;
 * cpwalker_navigation: interface with the ROS navigation stack.
 
-Check the Wifi for more information.
+Check the Wiki for more information.
 	
 	
