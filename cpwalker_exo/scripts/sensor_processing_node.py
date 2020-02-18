@@ -23,6 +23,7 @@ class SensorProcess(object):
         self.init_subs_()
 
     def init_params_(self):
+        # TODO: Check values
         self.pot_params_all = {'left_knee':[-0.105, 98.401],
                      'right_knee':[0.1087, -10.109],
                      'left_hip':[-0.0983, 67.598],
@@ -56,15 +57,15 @@ class SensorProcess(object):
         # rospy.loginfo(msg.data)
         self.angle_pub.publish(self.pot2angle(self.biquad_filter(msg.data)))
 
-    def gauge_callback_(self):
+    def gauge_callback_(self, msg):
         # TODO: Include strain gauge processing
         pass
 
-    def fsr1_callback_(self):
+    def fsr1_callback_(self,msg):
         # TODO: Include fsr processing
         pass
 
-    def fsr2_callback_(self):
+    def fsr2_callback_(self,msg):
         # TODO: Include fsr processing
         pass
 

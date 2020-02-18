@@ -17,13 +17,13 @@ class VelocityUtils(object):
     def init_params(self):
         self.publish_vel_raw = self.rospy.get_param("traction_general/pub_vel_raw", False)
         self.current_vel_topic = self.rospy.get_param("traction_general/vel_topic", "/vel_raw")
-        self.wheels_separation = self.rospy.get_param("traction_general/wheels_separation", 0.8) # TODO: Check!
-        self.wheels_separation_param = self.wheels_separation / 2
+        self.wheels_separation = self.rospy.get_param("traction_general/wheels_separation", 0.55)
+        self.wheels_separation_param = self.wheels_separation / 2.0
         # We're not assuming both wheels are equal, though they should be (and likelly are)
-        self.left_wheel_radius = self.rospy.get_param("traction_general/left_wheel_radius", 0.15) # TODO: Check! # In meters
-        self.right_wheel_radius = self.rospy.get_param("traction_general/right_wheel_radius", 0.15) # TODO: Check! # In meters
-        self.rpm_to_ms_const_left  = self.left_wheel_radius * 2 * 3.1415 / 60 
-        self.rpm_to_ms_const_right  = self.right_wheel_radius * 2 * 3.1415 / 60 
+        self.left_wheel_radius = self.rospy.get_param("traction_general/left_wheel_radius", 0.085) 
+        self.right_wheel_radius = self.rospy.get_param("traction_general/right_wheel_radius", 0.085)
+        self.rpm_to_ms_const_left  = self.left_wheel_radius * 2.0 * 3.1415 / 60.0 
+        self.rpm_to_ms_const_right  = self.right_wheel_radius * 2.0 * 3.1415 / 60.0 
         return
     # In case we want to publish the raw velocity
     def init_publishers(self):
@@ -42,7 +42,7 @@ class VelocityUtils(object):
     def wheels_to_walker(self,left_wheel_vel,right_wheel_vel):
         # From left and right wheels velocities (m/s)
         # To walker's linear (m/s) and angular (rad/s) velocities
-        walker_linear_vel = (left_wheel_vel + right_wheel_vel) / 2
+        walker_linear_vel = (left_wheel_vel + right_wheel_vel) / 2.0
         walker_angular_vel = (right_wheel_vel - left_wheel_vel) / self.wheels_separation 
         return walker_linear_vel, walker_angular_vel
 

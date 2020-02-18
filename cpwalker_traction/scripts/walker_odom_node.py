@@ -16,7 +16,7 @@ class WalkerOdomNode(object):
     def __init__(self):
         # ROS initialization
         self.rospy = rospy
-        self.rospy.init_node("cpwalker_odom_node", anonymous = True)
+        self.rospy.init_node("cpwalker_odom_node", anonymous = False)
         self.rospy.loginfo("Starting CPWalker Odom Node")
 
         # Initialize odometry

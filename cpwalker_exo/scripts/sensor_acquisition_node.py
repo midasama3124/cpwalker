@@ -68,7 +68,7 @@ def main():
     inv_joint_can_id = {v: k for k, v in joint_can_id.iteritems()} # inverting key and value 
     
     # CAN
-    can_channel = rospy.get_param("can_comm/exo_port", "can1")
+    can_channel = rospy.get_param("can_comm/exo_port", "can0")
     can_bus = CANbus(channel=can_channel)
 
     rate_param = rospy.get_param("exo_hw/sampling_frequency", 1)
@@ -88,9 +88,12 @@ def main():
                     joint = inv_joint_can_id[msg.arbitration_id] # get joint name from joint can id
                     exec("{}.get_sensor_data(msg)".format(joint))
                 except:
-                    rospy.loginfo("[Exo] Error with id {}".format(msg.arbitration_id))
+                    rospy.logerr("[Exo] Error! Unknown id {}!".format(msg.arbitration_id))
     	rate.sleep()
 
+    for joint_name in has_joint:
+        exec("del {}".format(joint_name))
+    
     """Clean up ROS parameter server"""
     try:
         rospy.delete_param("exo_hw")

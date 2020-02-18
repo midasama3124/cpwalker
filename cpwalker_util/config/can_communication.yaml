@@ -1,4 +1,4 @@
 can_comm:
   verbose: True
-  traction_port: can0
+  elevation_port: can1
   exo_port: can0       # "can0" or "can1"

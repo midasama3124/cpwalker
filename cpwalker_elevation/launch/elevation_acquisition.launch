@@ -6,6 +6,7 @@
 
   <!-- PARAMS -->
   <rosparam file="$(find cpwalker_elevation)/config/hardware.yaml" />
+  <rosparam file="$(find cpwalker_util)/config/can_communication.yaml" />
 
   <!-- NODES -->
   <node pkg="cpwalker_elevation" name="elevation_acquisition_node" type="elevation_acquisition_node.py" output="screen" launch-prefix="$(arg launch_prefix)"/>

@@ -17,7 +17,7 @@
   <node pkg="cpwalker_traction" name="walker_odom_node" type="walker_odom_node.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
 
   <!-- Relay -->
-  <!--node pkg="topic_tools" name="topic_tools" type="relay" output="screen" args="/right_wheel_vel /left_wheel_vel"/-->
+  <node pkg="topic_tools" name="topic_tools" type="relay" output="screen" args="/left_wheel_vel /right_wheel_vel"/>
 
   <!-- Control CPWalker vel -->
   <node pkg="cpwalker_traction" name="motor_control_node" type="motor_control_node.py" output="screen"/>

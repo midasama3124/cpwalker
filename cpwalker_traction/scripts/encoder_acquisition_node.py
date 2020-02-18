@@ -25,7 +25,7 @@ class EncoderAcq(object):
     def get_sensor_data(self):
         enc_count = self.spi_bus.readCounter()
         if enc_count is not None:
-            if self.verbose: rospy.loginfo("Encoder data: {}".format(enc_count))
+            #if self.verbose: rospy.loginfo("Encoder data: {}".format(enc_count))
             self.enc_pub.publish(enc_count)
         else:
             rospy.logerr("No message received")
@@ -47,7 +47,8 @@ def main():
     	rate.sleep()
     
     for joint_name in joints:
-        exec("{}.spi_bus.close()".format(joint_name))
+        if 'right_wheel' in locals(): right_wheel.spi_bus.close()
+    	if 'left_wheel' in locals(): left_wheel.spi_bus.close()
 
     """Clean up ROS parameter server"""
     try:

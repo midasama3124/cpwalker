@@ -12,11 +12,11 @@ class MotorVel(object):
         self.joint_name = joint_name
         self.verbose = rospy.get_param("traction_hw/verbose", False)
         self.enc_status = 0
-        self.ppr = 512.0*4                             # Encoder resolution. 1 CPR = 4 PPR
-        self.ratio = 53.3                              # Motor transmission
-        self.window_size = 5.0                         # Running mean filter - window size
+        self.ppr = 500.0*4.0                           # Encoder resolution. 1 CPR = 4 PPR
+        self.ratio = 53.3                              # Motor transmission # Check!
+        self.window_size = 5                           # Running mean filter - window size
         self.vel_array = [0] * int(self.window_size)   # Running mean filter - past velocities array (sizeof(self.window_size))
-        self.meas_time = time.time()                   # Current measurement time
+        self.last_measured_time = time.time()          # Current measurement time
         """ROS initialization"""
         self.init_pubs_()
         self.init_subs_()
@@ -36,13 +36,16 @@ class MotorVel(object):
     """ Converts from encoder reading to motor velocity.
         The characteristic funtion depends on the encoder resolution and the motor transmission."""
     def enc2vel(self, enc_count):
-        delta_time = time.time() - self.meas_time
+        current_time = time.time()
+        delta_time = current_time - self.last_measured_time
         delta_count = enc_count - self.enc_status
-        # print delta_count
-        wheel_vel = ((delta_count / self.ppr) * 1.0/self.ratio) / (delta_time / 60.0)
-        if self.verbose: print "Wheel velocity [rpm]: {}".format(wheel_vel)
+        
+        shaft_turn = delta_count / self.ppr 
+        shaft_vel = shaft_turn / (delta_time / 60.0) # in rpm
+        wheel_vel = shaft_vel / self.ratio           # in rpm
+        #if self.verbose: print "{} Wheel velocity [rpm]: {}".format(self.joint_name,wheel_vel)
         self.enc_status = enc_count
-        self.meas_time = time.time()
+        self.last_measured_time = current_time
         return wheel_vel
 
     ''' Running mean filter to smooth velocity readings '''
@@ -53,7 +56,7 @@ class MotorVel(object):
 
 def main():
     """Module initialization"""
-    rospy.init_node('wheels_vel_node', anonymous=True)       
+    rospy.init_node('wheels_vel_node', anonymous=False)       
     for joint_name in joints:
         if rospy.has_param("traction_hw/joints/{}".format(joint_name)):
             joint_hw = rospy.get_param("traction_hw/joints/{}".format(joint_name))

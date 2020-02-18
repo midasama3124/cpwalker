@@ -43,6 +43,7 @@ class TractionMotorControl(object):
         self.rospy = rospy
         # Start the i2c bus
         self.i2c_bus = I2Cbus("traction")
+        self.i2c_bus.traction_stop_robot()
 
         # Parameter initialization
         self.initParameters()
@@ -54,8 +55,6 @@ class TractionMotorControl(object):
         self.initPIDs()
         self.vel_utils = VelocityUtils()
 
-        
-
     def __del__(self):
         self.i2c_bus.traction_stop_robot()
         print("For testing only - erase this line")
@@ -65,8 +64,9 @@ class TractionMotorControl(object):
 
     def initParameters(self):
         self.debug = self.rospy.get_param("traction_control/debug", True)
+        self.verbose = rospy.get_param("traction_hw/verbose", True)
 
-        self.control_rate = self.rospy.get_param("traction_control/control_rate", 200)
+        self.control_rate = self.rospy.get_param("traction_control/control_rate", 100)
         self.rate = self.rospy.Rate(self.control_rate)
         
         '''
@@ -104,7 +104,7 @@ class TractionMotorControl(object):
         self.sub_odom = message_filters.Subscriber(self.odom_topic,Odometry)
         self.sub_cmd_vel = message_filters.Subscriber(self.cmd_vel_topic,Twist)
 
-        self.ts = message_filters.ApproximateTimeSynchronizer([self.sub_odom, self.sub_cmd_vel],5, 0.01, allow_headerless=True)
+        self.ts = message_filters.ApproximateTimeSynchronizer([self.sub_odom, self.sub_cmd_vel], 50, 0.01, allow_headerless=True)
         self.ts.registerCallback(self.control_callback)
         return
 
@@ -129,10 +129,13 @@ class TractionMotorControl(object):
         # Extract walker's reference linear and angular velocities
         self.reference_linear_vel = cmd_vel_msg.linear.x
         self.reference_angular_vel = cmd_vel_msg.angular.z
+        if self.verbose: rospy.loginfo("[Motor Control] Reference Lin Vel: {}".format(self.reference_linear_vel))
+
         # From odometry
         # Extract walker's current linear and angular velocities
         self.current_linear_vel = odom_msg.twist.twist.linear.x
         self.current_angular_vel = odom_msg.twist.twist.angular.z
+        if self.verbose: rospy.loginfo("[Motor Control] Current Lin Vel:   {}".format(self.current_linear_vel))
 
     def pid_controller_left(self, reference_vel_wheel, current_vel_wheel):
         self.pid_left.setpoint = reference_vel_wheel
@@ -149,7 +152,9 @@ class TractionMotorControl(object):
         # Get velocities for each wheel
         reference_left_wheel_vel, reference_right_wheel_vel = self.vel_utils.walker_to_wheels(self.reference_linear_vel, self.reference_angular_vel)
         current_left_wheel_vel, current_right_wheel_vel = self.vel_utils.walker_to_wheels(self.current_linear_vel, self.current_angular_vel)
-
+        if self.verbose: 
+            rospy.loginfo_throttle(0.5,"[Motor Control] Left Wheel:  {}  {}  {}".format(reference_left_wheel_vel,current_left_wheel_vel,(reference_left_wheel_vel-current_left_wheel_vel)))
+            rospy.loginfo_throttle(0.5,"[Motor Control] Right Wheel: {}  {}  {}".format(reference_right_wheel_vel,current_right_wheel_vel,(reference_right_wheel_vel-current_right_wheel_vel)))
         # Call PID (returned control signal in volts)
         self.left_wheel_signal_volts = self.pid_controller_left(reference_left_wheel_vel, current_left_wheel_vel)
         self.right_wheel_signal_volts = self.pid_controller_right(reference_right_wheel_vel, current_right_wheel_vel)
@@ -173,6 +178,7 @@ class ElevationMotorControl(object):
         self.rospy = rospy
         # Start the i2c bus
         self.i2c_bus = I2Cbus("elevation")
+        self.i2c_bus.stop_robot()
 
         # Parameter initialization
         self.initParameters()
