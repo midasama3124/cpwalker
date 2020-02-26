@@ -1,0 +1,17 @@
+<launch>
+  <!-- ARGS -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <!-- PARAMS -->
+  <rosparam file="$(find cpwalker_elevation)/config/hardware.yaml" />
+  <rosparam file="$(find cpwalker_util)/config/can_communication.yaml" />
+
+  <!-- NODES -->
+  <node pkg="cpwalker_elevation" name="elevation_acquisition" type="ELEVATION_acquisition.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
+  <!-- Note that we only acquire data here; the cpwalker_traction/motor_controller node is in charge of controlling all motors -->
+  <node pkg="cpwalker_elevation" name="elevation_offset" type="ELEVATION_offset.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
+  <node pkg="cpwalker_elevation" name="elevation_setpoint_input" type="ELEVATION_setpoint_input.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
+
+</launch>

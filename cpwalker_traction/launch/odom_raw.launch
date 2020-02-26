@@ -1,0 +1,17 @@
+<launch>
+  <!-- ARGS -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <!-- PARAMS -->
+  <rosparam file="$(find cpwalker_util)/config/spi_communication.yaml" />
+  <rosparam file="$(find cpwalker_traction)/config/hardware.yaml" />
+  <rosparam file="$(find cpwalker_elevation)/config/hardware.yaml" />
+
+  <!-- NODES -->
+  <!-- Publish Odometry -->
+  <node pkg="cpwalker_traction" name="encoder_acquisition_node" type="ODOM_encoder_acquisition.py" output="screen" launch-prefix="$(arg launch_prefix)"/>
+  <node pkg="cpwalker_traction" name="wheel_velocity_node"      type="ODOM_motor_velocity.py"      output="screen" launch-prefix="$(arg launch_prefix)"/>
+  <node pkg="cpwalker_traction" name="walker_odom_node"         type="ODOM_walker_odom.py"         output="screen" launch-prefix="$(arg launch_prefix)"/>
+</launch>

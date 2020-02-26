@@ -4,20 +4,25 @@ elevation_hw:
   joints:
     elevation:
       can_id: 80     ### Check!
-      Potentiometer: True
+      Potentiometer: False
       Gauge: True
       FSR1: False
       FSR2: False
+  offset_manual: False
+  manual_offset_value: 0.0
   
 elevation_general:
   is_active: False
 
 elevation_control:
-  control_rate: 100
   debug: True
+  elevation_setpoint_manual: False # True if you want to use another source (e.g., rostopic pub)
+  elevation_setpoint_value: 0.0
+  control_rate: 100
   pid_params:
     P: 1
     I: 0
     D: 0
-  position_topic: "/elevation_signal"
+  elevation_weight_topic: "/elevation_weight"
   elevation_setpoint_topic: "/elevation_setpoint"
+  aux_elevation_setpoint_topic: "/aux_elevation_setpoint"

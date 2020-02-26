@@ -8,14 +8,21 @@ from std_msgs.msg import Float64
 
 '''
 This code is directly adapted from the exo code, as the communication scheme should be the same.
-'''
-"""Global variables"""
-hw_names = ["Potentiometer", "Gauge"]
-'''
+
 Also, I'm assuming:
     - all of the sensors are connected to a single CAN module (i.e., a single DAQ);
     - this CAN bus is used exclusively for the elevation acquisition
+
+Right now, the potentiometer is not used at all.
+
+TODO (and this is an important TODO):
+Put the filter and equation coeficients into the config files and import them as parameters.
+Those values will not be the same for the CPWalker and SWalker and might change with time.
 '''
+
+"""Global variables"""
+hw_names = ["Potentiometer", "Gauge"]
+
 class SensorAcq(object):
     def __init__(self, joint_name, has_hw):
         self.joint_name = joint_name
@@ -25,15 +32,28 @@ class SensorAcq(object):
         """ROS initialization"""
         self.init_params()
         self.init_pubs_()
+        self.init_var()
 
     def init_params(self):
         self.pot_msg = Float64(0.0)
         self.gauge_msg = Float64(0.0)
 
+        ## Gauge
+        # Low pass FIR Filter // Considering 100 Hz sampling frequency
+        self.filter_gauge_den = 1.0
+        self.filter_gauge_num = [-0.000726704529603941, -0.00306014837932883, -0.00727193824711213,	-0.0112533700301156,
+                            	-0.00959215560618704, 0.00504821352674820, 0.0378627066672568, 0.0870857819528269,
+                            	0.141857621447510, 0.185268649416829, 0.201828298578163, 0.185268649416829, 0.141857621447510,
+                            	0.0870857819528269, 0.0378627066672568, 0.00504821352674820, -0.00959215560618704, -0.0112533700301156,
+                                -0.00727193824711213, -0.00306014837932883, -0.000726704529603941]
+        self.gauge_data_array = [0] * int(len(self.filter_gauge_num))   # past data array initialization
+
+        ## Potentiometer
         # FIR Filter
-        # From CPWalker Simulink Model
-        self.filter_den = 1.0
-        self.filter_num = [0.00024042439949025545, 0.00049836390813927627, 0.00097417229437224417, 0.0017000443550953693, 
+        # From CPWalker Simulink Model // Note: I'm not sure which sampling frequency is implied here. 
+        # Honestly, the filter order seems rather big. Havent tested it as the sensor is not connected
+        self.filter_pot_den = 1.0
+        self.filter_pot_num = [0.00024042439949025545, 0.00049836390813927627, 0.00097417229437224417, 0.0017000443550953693, 
             0.0027373631842420856, 0.0041421027122268989, 0.0059580488476079062, 0.0082097899804267037, 0.010896842583805376,
             0.013988542477833011, 0.017421366592009706, 0.021099314003761898, 0.024896741653447137, 0.028664469167552876, 
             0.032238878049440665, 0.035452434826228466, 0.038145665650585241, 0.040179625609237338, 0.04144581448006561, 
@@ -41,15 +61,18 @@ class SensorAcq(object):
             0.032238878049440665, 0.028664469167552876, 0.024896741653447137, 0.021099314003761898, 0.017421366592009706,  
             0.013988542477833011, 0.010896842583805376, 0.0082097899804267037, 0.0059580488476079062, 0.0041421027122268989,
             0.0027373631842420856, 0.0017000443550953693, 0.00097417229437224417, 0.00049836390813927627, 0.00024042439949025545]
-        # Data array for potentiometer filtering
-        self.pot_data_array = [0] * int(len(self.filter_num))   # past data array initialization
+        self.pot_data_array = [0] * int(len(self.filter_pot_num))   # past data array initialization
 
     def init_pubs_(self):
         if self.has_pot:
             self.pot_pub = rospy.Publisher('{}_pot'.format(self.joint_name), Float64, queue_size=100)
         if self.has_gauge:
-            self.gauge_raw_pub = rospy.Publisher('{}_raw_gauge'.format(self.joint_name), Float64, queue_size=100)
-            self.gauge_force_pub = rospy.Publisher('{}_gauge_force'.format(self.joint_name), Float64, queue_size=100)
+            self.gauge_raw_pub = rospy.Publisher('{}_gauge_raw'.format(self.joint_name), Float64, queue_size=100)
+            self.gauge_force_pub = rospy.Publisher('{}_gauge_weight'.format(self.joint_name), Float64, queue_size=100)
+
+    def init_var(self):
+        self.window_size_gauge_filter = 50.0                                 # Running mean filter - window size # Currently unused
+        self.gauge_array_filter = [0] * int(self.window_size_gauge_filter)   # Running mean filter               # Currently unused
 
     def get_sensor_data(self,msg):
         ''' Bytearray decoding returns tuple. Meaning of arguments:
@@ -72,10 +95,9 @@ class SensorAcq(object):
         pot_processed = self.pot_fir_filter(pot_data)
         return pot_processed
 
-    # TO DO: Simulink model from CPWalker wasn't considering the elevation strain gauge
     def gauge_processing(self,gauge_data):
         gauge_filtered = self.gauge_fir_filter(gauge_data)
-        gauge_processed = self.gauge_to_force(gauge_data)
+        gauge_processed = self.gauge_to_force(gauge_filtered)
         return gauge_processed
     
     def pot_fir_filter(self,data):
@@ -83,16 +105,35 @@ class SensorAcq(object):
         self.pot_data_array.pop()
         self.pot_data_array.insert(0,data)
         # Filter
-        #data_filtered = signal.lfilter(self.filter_num, self.filter_den, pot_data_array)
+        #data_filtered = signal.lfilter(self.filter_pot_num, self.filter_pot_den, self.pot_data_array)
         data_filtered = data
         return data_filtered
     
     def gauge_fir_filter(self,data):
-        gauge_filtered = data
+        # Rolling window
+        self.gauge_data_array.pop()
+        self.gauge_data_array.insert(0,data)
+        # Filter
+        gauge_filtered_array = signal.lfilter(self.filter_gauge_num, self.filter_gauge_den, self.gauge_data_array)
+        gauge_filtered = gauge_filtered_array[-1]
+        ''' Rolling average # To delete, use the FIR filter instead
+        self.gauge_array_filter.pop()
+        self.gauge_array_filter.insert(0,gauge_raw)
+        gauge_filtered = sum(self.gauge_array_filter) / self.window_size_gauge_filter
+        '''
         return gauge_filtered
 
     def gauge_to_force(self,data):
-        gauge_force = data
+        '''
+        First (and quick calibration) using the SWalker
+        ADC reading from 0 to 1024
+        Weights from 0 to 100 // the zero already offsets the supports and exo
+        ADC     Weight
+        25      0 Kg
+        75      5 Kg
+        130     10 Kg
+        '''
+        gauge_force = (data - 25)/10.5 
         return gauge_force
 
 def main():

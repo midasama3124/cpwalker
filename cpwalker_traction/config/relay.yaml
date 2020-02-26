@@ -1,0 +1,4 @@
+relay:
+  traction_flag: False
+  elevation_flag: False
+  update_params_service: "/relay_update_parameters"
