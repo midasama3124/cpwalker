@@ -1,0 +1,16 @@
+  <launch>
+  <!-- ARGS -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <!-- PARAMS -->
+  <rosparam file="$(find cpwalker_util)/config/can_communication.yaml" />
+  <rosparam file="$(find cpwalker_exo)/config/hardware.yaml" />
+  
+  <rosparam file="$(find cpwalker_exo)/config/trajectory.yaml" />
+
+  <!-- NODES -->
+  <node name="exo_control_node" pkg="cpwalker_exo" type="control_node" output="screen" />
+
+</launch>
