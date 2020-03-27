@@ -8,13 +8,16 @@
 #include "cpwalker_exo/PID.h"
 
 PID::PID() {
-  
+
 }
 
-PID::PID(double kp, double ki, double kd) {
+PID::PID(float kp, float ki, float kd, float limit) {
   kp_ = kp;
   ki_ = ki;
   kd_ = kd;
+  limit_ = limit;
+  i_max_ = limit_ /ki_;
+  i_min_ = -limit_/ki_;
 
   last_error_ = 0;
   sum_ = 0;
@@ -23,15 +26,29 @@ PID::PID(double kp, double ki, double kd) {
 PID::~PID() {
 }
 
-double PID::update(double error) {
-  double p, i, d;
+float PID::update(float error) {
+  float p, i, d;
 
-  sum_ += error;
+  //Proportional:
   p = kp_ * error;
-  i = ki_ * sum_;
+  //Integrator:
+  sum_ += error;
+  //Integrator windup: 
+  if (sum_ >= i_max_)
+    sum_ = i_max_;
+  else if (sum_ <= i_min_)
+    sum_ = i_min_;
+  else
+    i = ki_ * sum_;
+  // Diferential:
   d = kd_ * (error - last_error_);
 
   last_error_ = error;
 
-  return p + i + d;
+  if ( p + i + d <= -9)
+      return -8.9;
+  else if ( p + i + d > 9)
+      return 8.9;
+  else
+    return p + i + d;
 }

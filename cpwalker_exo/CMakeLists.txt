@@ -135,7 +135,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(
-    control_node src/control_node.cpp src/PID.cpp src/JointControl.cpp
+    control_node src/control_node.cpp src/PID.cpp src/JointControl.cpp src/SPI.cpp
   )
 #add_executable(
 #  control_pid src/PID.cpp

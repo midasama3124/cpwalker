@@ -7,10 +7,10 @@
   <!-- PARAMS -->
   <rosparam file="$(find cpwalker_util)/config/can_communication.yaml" />
   <rosparam file="$(find cpwalker_exo)/config/hardware.yaml" />
-  
+
   <rosparam file="$(find cpwalker_exo)/config/trajectory.yaml" />
 
   <!-- NODES -->
-  <node name="exo_control_node" pkg="cpwalker_exo" type="control_node" output="screen" />
+  <node name="exo_control_node" pkg="cpwalker_exo" type="control_node" output="screen" launch-prefix="sudo -E" />
 
 </launch>

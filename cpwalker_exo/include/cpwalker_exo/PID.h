@@ -14,17 +14,22 @@
 class PID {
  public:
    PID();
-   PID(double kp, double ki, double kd);
+   PID(float kp, float ki, float kd, float limit);
+
+   inline float Proportional() {return kp_;};
    ~PID();
 
-   double update(double error);
+   float update(float error);
+   inline float accumulatedError() {return sum_;}
 
  private:
-  double kp_;  //!< Proportional constant
-  double ki_;  //!< Integral constant
-  double kd_;  //!< Derivative constant
-  double sum_;        //!< Sum error
-  double last_error_; //!< Last error
+  float kp_;  //!< Proportional constant
+  float ki_;  //!< Integral constant
+  float kd_;  //!< Derivative constant
+  float sum_;        //!< Sum error
+  float last_error_; //!< Last error
+  float limit_; //! Limit of the control output desired
+  float i_max_, i_min_; //! Boundaries of the Integrator controller.
 };
 
 #endif  // CPWALKER_EXO_PID_H_

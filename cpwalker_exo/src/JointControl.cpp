@@ -13,27 +13,26 @@ JointControl::JointControl() {
 JointControl::JointControl(std::string joint, std::vector<bool> hardware) {
   joint_ = joint;
   hardware_ = hardware;
-  if (joint_ == "right_knee") {
+  if (joint == "right_knee") {
+   //pid_angle_ = PID(0.085, 0.0001 , 0, 9);
+   pid_angle_ = PID(0.085, 0, 0, 9);
+  } else if (joint == "left_knee") {
+    //pid_angle_ = PID(0.17,0,0);
+  } else if (joint == "right_hip"){
     //TODO pid_angle_ = PID(0.17,0,0);
-  }
-  else if (joint_ == "left_knee")
-   pid_angle_ = PID(0.17,0,0);
-  else if (joint_ == "right_hip"){
-    //TODO pid_angle_ = PID(0.17,0,0);
-  }
-  else if (joint == "left_hip"){
+  }  else if (joint == "left_hip"){
     //TODO pid_angle_ = PID(0.17,0,0);
   }
 }
 
 void JointControl::angleCallback(const std_msgs::Float64& msg) {
   angle_ = msg.data;
-  std::cout << "Angle message of joint " << joint_ << " of value: " << angle_ << '\n';
+  //std::cout << "Angle message of joint " << joint_ << " of value: " << angle_ << '\n';
 }
 //Gauge
 void JointControl::gaugeCallback(const std_msgs::Float64& msg) {
   gauge_ = msg.data;
-  std::cout << "Gauge message of joint " << joint_ << " of value: " << gauge_ << '\n';
+  //std::cout << "Gauge message of joint " << joint_ << " of value: " << gauge_ << '\n';
 }
 //FSR1
 void JointControl::fsr1Callback(const std_msgs::Float64& msg) {
@@ -45,5 +44,4 @@ void JointControl::fsr2Callback(const std_msgs::Float64& msg) {
 }
 
 JointControl::~JointControl() {
-
 }
