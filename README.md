@@ -1,4 +1,6 @@
 # cpwalker
+### This repository is outdated. Please, check the [current repository](https://github.com/ricardocmello/cpwalker-ros)
+
 ROS metapackage for CPWalker platform (CAR-CSIC)
 
 Each package in here is responsible for one of the CPWalker's subsystems.
@@ -9,6 +11,6 @@ Each package in here is responsible for one of the CPWalker's subsystems.
 * cpwalker_elevation: elevation system acquisition and control;
 * cpwalker_navigation: interface with the ROS navigation stack.
 
-Check the Wiki for more information.
+[Check the Wiki](https://github.com/ricardocmello/cpwalker/wiki) for more information.
 	
 	
