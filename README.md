@@ -1,4 +1,6 @@
 # cpwalker
+### This repository is outdated. Please, check the [current repository](https://github.com/ricardocmello/cpwalker-ros)
+
 ROS metapackage for CPWalker platform (CAR-CSIC)
 
 Each package in here is responsible for one of the CPWalker's subsystems.
