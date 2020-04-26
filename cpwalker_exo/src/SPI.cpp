@@ -8,6 +8,7 @@
 #include "cpwalker_exo/SPI.h"
 
 SPI::SPI() {
+  last_voltage_ = 0;
 }
 
 bool SPI::init() {
@@ -41,35 +42,45 @@ bool SPI::init() {
   return 1;
 }
 
-void SPI::sendData(std::string joint, uint16_t data) {
-  char buf[2] = {data >> 8, data & 0xFF};
+void SPI::sendData(std::string joint, float voltage) {
+
+  // Motor Driver limitations
+  if (voltage >= 9)
+    voltage = 9;
+  if (voltage <= -9)
+    voltage = -9;
+
+  if (abs(voltage - last_voltage_) > 0.5 && joint == "right_knee")
+    std::cout << "<<<ERROR>>>" << '\n';
+
+  if (joint == "right_knee")
+    last_voltage_ = voltage;
+
+  data_ = static_cast<uint16_t > (voltage * 3364.2 + 30215.3); //AD5570 callibration
+  char buf[2] = {data_ >> 8, data_ & 0xFF};
   if (joint == "right_knee") {
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_29,LOW); //right_knee
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_31,HIGH); //left_knee
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_36,HIGH); //right_hip
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_37,HIGH); //left_hip
-    //std::memcpy(buf, (char*)&data, sizeof(buf)); //Transform uint -> char[2]
     bcm2835_aux_spi_transfern(buf, sizeof(buf));
   } else if (joint == "left_knee"){
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_29,HIGH); //right_knee
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_31,LOW); //left_knee
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_36,HIGH); //right_hip
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_37,HIGH); //left_hip
-    //buf = data & 0xFFFF;
     bcm2835_aux_spi_transfern(buf, sizeof(buf));
   } else if (joint == "right_hip") {
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_29,HIGH); //right_knee
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_31,HIGH); //left_knee
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_36,LOW); //right_hip
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_37,HIGH); //left_hip
-    //buf = data & 0xFFFF;
     bcm2835_aux_spi_transfern(buf, sizeof(buf));
   } else if (joint == "left_hip"){
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_29,HIGH); //right_knee
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_31,HIGH); //left_knee
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_36,HIGH); //right_hip
     bcm2835_gpio_write(RPI_BPLUS_GPIO_J8_37,LOW); //left_hip
-    //buf = data & 0xFFFF;
     bcm2835_aux_spi_transfern(buf, sizeof(buf));
   } else
       ROS_WARN("SPI sendData FAILED.");
