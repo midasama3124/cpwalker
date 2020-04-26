@@ -11,6 +11,6 @@
   <rosparam file="$(find cpwalker_exo)/config/trajectory.yaml" />
 
   <!-- NODES -->
-  <node name="exo_control_node" pkg="cpwalker_exo" type="control_node" output="screen" launch-prefix="sudo -E" />
+  <node name="exo_control_node" pkg="cpwalker_exo" type="control_node" output="screen" />
 
 </launch>
