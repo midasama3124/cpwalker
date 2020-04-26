@@ -27,28 +27,34 @@ PID::~PID() {
 }
 
 float PID::update(float error) {
-  float p, i, d;
+  float p, i, u, d;
+  d = kd_ * (error - last_error_);
 
   //Proportional:
   p = kp_ * error;
+
+  //if (std::abs (error) >= 5)
+  //  sum_ = 0;
+
+  // Windup integrator:
+  if ( p + ki_ * sum_  <= -limit_) {
+    u = -8.9;
+    if (error < 0)
+      error = 0;
+  }
+  else if ( p + ki_ * sum_ > limit_) {
+    u = 8.9;
+    if (error > 0)
+      error = 0;
+   }
+
   //Integrator:
   sum_ += error;
-  //Integrator windup: 
-  if (sum_ >= i_max_)
-    sum_ = i_max_;
-  else if (sum_ <= i_min_)
-    sum_ = i_min_;
-  else
-    i = ki_ * sum_;
-  // Diferential:
-  d = kd_ * (error - last_error_);
+  i = ki_ * sum_;
+
+  u = p + i + d;
 
   last_error_ = error;
 
-  if ( p + i + d <= -9)
-      return -8.9;
-  else if ( p + i + d > 9)
-      return 8.9;
-  else
-    return p + i + d;
+  return u;
 }

@@ -13,6 +13,7 @@
 #include <bcm2835.h>
 #include "ros/ros.h"
 #include <string>
+#include <stdlib.h>
 
 class SPI {
  public:
@@ -22,7 +23,7 @@ class SPI {
    bool init();
 
    //Send data to the selected joint.
-   void sendData(std::string joint, uint16_t data);
+   void sendData(std::string joint, float voltage);
 
    //End bcm2835 and spi.
    void end();
@@ -30,6 +31,8 @@ class SPI {
    ~SPI();
 
  private:
+   uint16_t data_;
+   float last_voltage_;
 };
 
 #endif  // CPWALKER_EXO_SPI_H_
